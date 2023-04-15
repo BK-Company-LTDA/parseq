@@ -1,6 +1,6 @@
 defaults:
   - _self_
-  - model: parseq
+  - model: parseq-tiny
   - charset: 94_full
   - dataset: real
 

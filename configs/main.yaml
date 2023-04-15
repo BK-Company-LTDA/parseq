@@ -12,7 +12,7 @@ model:
   charset_train: "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
   # For charset_test, ordering doesn't matter.
   charset_test: "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
-  batch_size: 192
+  batch_size: 384
   weight_decay: 0.0
   warmup_pct: 0.075  # equivalent to 1.5 epochs of warm up
 

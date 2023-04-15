@@ -145,3 +145,9 @@ cython_debug/
 
 # IDE
 .idea/
+
+# Data
+data/
+data.zip
+securimage-data/
+securimage-data.zip

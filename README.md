@@ -1,3 +1,12 @@
+## News
+- **2024-02-22**: Updated for PyTorch 2.0 and Lightning 2.0
+- **2024-01-16**: Featured in the [NVIDIA Developer Blog](https://developer.nvidia.com/blog/robust-scene-text-detection-and-recognition-introduction/)
+- **2023-11-18**: [Interview with Deci AI at ECCV 2022](https://deeplearningdaily.substack.com/p/exclusive-interview-with-a-researcher) published
+- **2023-09-07**: [Added](https://github.com/PaddlePaddle/PaddleOCR/blob/main/doc/doc_en/algorithm_rec_parseq_en.md) to [PaddleOCR](https://github.com/PaddlePaddle/PaddleOCR), one of the most popular multilingual OCR toolkits
+- **2023-06-15**: [Added](https://mindee.github.io/doctr/modules/models.html#doctr.models.recognition.parseq) to [docTR](https://github.com/mindee/doctr), a deep learning-based library for OCR
+- **2022-07-14**: Initial public release (ranked #1 overall for STR on [Papers With Code](https://paperswithcode.com/paper/scene-text-recognition-with-permuted) at the time of release)
+- **2022-07-04**: Accepted at ECCV 2022
+
 <div align="center">
 
 # Scene Text Recognition with<br/>Permuted Autoregressive Sequence Models
@@ -5,6 +14,15 @@
 [![arXiv preprint](http://img.shields.io/badge/arXiv-2207.06966-b31b1b)](https://arxiv.org/abs/2207.06966)
 [![In Proc. ECCV 2022](http://img.shields.io/badge/ECCV-2022-6790ac)](https://www.ecva.net/papers/eccv_2022/papers_ECCV/html/556_ECCV_2022_paper.php)
 [![Gradio demo](https://img.shields.io/badge/%F0%9F%A4%97%20demo-Gradio-ff7c00)](https://huggingface.co/spaces/baudm/PARSeq-OCR)
+
+[![PWC](https://img.shields.io/endpoint.svg?url=https://paperswithcode.com/badge/scene-text-recognition-with-permuted/scene-text-recognition-on-coco-text)](https://paperswithcode.com/sota/scene-text-recognition-on-coco-text?p=scene-text-recognition-with-permuted)
+[![PWC](https://img.shields.io/endpoint.svg?url=https://paperswithcode.com/badge/scene-text-recognition-with-permuted/scene-text-recognition-on-ic19-art)](https://paperswithcode.com/sota/scene-text-recognition-on-ic19-art?p=scene-text-recognition-with-permuted)
+[![PWC](https://img.shields.io/endpoint.svg?url=https://paperswithcode.com/badge/scene-text-recognition-with-permuted/scene-text-recognition-on-icdar2013)](https://paperswithcode.com/sota/scene-text-recognition-on-icdar2013?p=scene-text-recognition-with-permuted)
+[![PWC](https://img.shields.io/endpoint.svg?url=https://paperswithcode.com/badge/scene-text-recognition-with-permuted/scene-text-recognition-on-iiit5k)](https://paperswithcode.com/sota/scene-text-recognition-on-iiit5k?p=scene-text-recognition-with-permuted)
+[![PWC](https://img.shields.io/endpoint.svg?url=https://paperswithcode.com/badge/scene-text-recognition-with-permuted/scene-text-recognition-on-cute80)](https://paperswithcode.com/sota/scene-text-recognition-on-cute80?p=scene-text-recognition-with-permuted)
+[![PWC](https://img.shields.io/endpoint.svg?url=https://paperswithcode.com/badge/scene-text-recognition-with-permuted/scene-text-recognition-on-icdar2015)](https://paperswithcode.com/sota/scene-text-recognition-on-icdar2015?p=scene-text-recognition-with-permuted)
+[![PWC](https://img.shields.io/endpoint.svg?url=https://paperswithcode.com/badge/scene-text-recognition-with-permuted/scene-text-recognition-on-svt)](https://paperswithcode.com/sota/scene-text-recognition-on-svt?p=scene-text-recognition-with-permuted)
+[![PWC](https://img.shields.io/endpoint.svg?url=https://paperswithcode.com/badge/scene-text-recognition-with-permuted/scene-text-recognition-on-svtp)](https://paperswithcode.com/sota/scene-text-recognition-on-svtp?p=scene-text-recognition-with-permuted)
 
 [**Darwin Bautista**](https://github.com/baudm) and [**Rowel Atienza**](https://github.com/roatienza)
 
@@ -26,10 +44,11 @@ Scene Text Recognition (STR) models use language context to be more robust again
 Our main insight is that with an ensemble of autoregressive (AR) models, we could unify the current STR decoding methods (context-aware AR and context-free non-AR) and the bidirectional (cloze) refinement model:
 <div align="center"><img src=".github/contexts-example.png" alt="Unified STR model" width="75%"/></div>
 
-A single Transformer can realize different models by merely varying its attention masks. This characteristic coupled with Permutation Language Modeling allows for a _unified_ STR model capable of context-free and context-aware inference, as well as iterative prediction refinement using bidirectional context **without** requiring a standalone language model. PARSeq can be considered an ensemble of AR models with shared architecture and weights:
+A single Transformer can realize different models by merely varying its attention mask. With the correct decoder parameterization, it can be trained with Permutation Language Modeling to enable inference for arbitrary output positions given arbitrary subsets of the input context. This *arbitrary decoding* characteristic results in a _unified_ STR model&mdash;PARSeq&mdash;capable of context-free and context-aware inference, as well as iterative prediction refinement using bidirectional context **without** requiring a standalone language model. PARSeq can be considered an ensemble of AR models with shared architecture and weights:
 
 ![System](.github/system.png)
-
+**NOTE:** _LayerNorm and Dropout layers are omitted. `[B]`, `[E]`, and `[P]` stand for beginning-of-sequence (BOS), end-of-sequence (EOS), and padding tokens, respectively. `T` = 25 results in 26 distinct position tokens. The position tokens both serve as query vectors and position embeddings for the input context. For `[B]`, no position embedding is added. Attention
+masks are generated from the given permutations and are used only for the context-position attention. L<sub>ce</sub> pertains to the cross-entropy loss._
 
 ### Sample Results
 <div align="center">
@@ -55,10 +74,19 @@ released under the BSD and MIT licenses, respectively (see corresponding `LICENS
 An [interactive Gradio demo](https://huggingface.co/spaces/baudm/PARSeq-OCR) hosted at Hugging Face is available. The pretrained weights released here are used for the demo.
 
 ### Installation
-Requires Python 3.7 and PyTorch 1.10 or newer. Tested on Python 3.9 and PyTorch 1.10.
+Requires Python >= 3.9 and PyTorch >= 2.0. The default requirements files will install the latest versions of the dependencies (as of February 22, 2024).
 ```bash
-$ pip install -r requirements.txt
-$ pip install -e .
+# Use specific platform build. Other PyTorch 2.0 options: cu118, cu121, rocm5.7
+platform=cpu
+# Generate requirements files for specified PyTorch platform
+make torch-${platform}
+# Install the project and core + train + test dependencies. Subsets: [dev,train,test,bench,tune]
+pip install -r requirements/core.${platform}.txt -e .[train,test]
+ ```
+#### Updating dependency version pins
+```bash
+pip install pip-tools
+make clean-reqs reqs  # Regenerate all the requirements files
  ```
 ### Datasets
 Download the [datasets](Datasets.md) from the following links:
@@ -66,7 +94,7 @@ Download the [datasets](Datasets.md) from the following links:
 2. [LMDB archives](https://drive.google.com/drive/folders/1D9z_YJVa6f-O0juni-yG5jcwnhvYw-qC) for TextOCR and OpenVINO.
 
 ### Pretrained Models via Torch Hub
-Available models are: `abinet`, `crnn`, `trba`, `vitstr`, `parseq_tiny`, and `parseq`.
+Available models are: `abinet`, `crnn`, `trba`, `vitstr`, `parseq_tiny`, `parseq_patch16_224`, and `parseq`.
 ```python
 import torch
 from PIL import Image
@@ -103,7 +131,7 @@ The training script can train any supported model. You can override any configur
 
 ### Finetune using pretrained weights
 ```bash
-./train.py pretrained=parseq-tiny  # Not all experiments have pretrained weights
+./train.py +experiment=parseq-tiny pretrained=parseq-tiny  # Not all experiments have pretrained weights
 ```
 
 ### Train a model variant/preconfigured experiment
@@ -134,7 +162,7 @@ The base model configurations are in `configs/model/`, while variations are stor
 
 ### Change `pytorch_lightning.Trainer` parameters
 ```bash
-./train.py trainer.max_epochs=20 trainer.gpus=2 +trainer.accelerator=gpu
+./train.py trainer.max_epochs=20 trainer.accelerator=gpu trainer.devices=2
 ```
 Note that you can pass any [Trainer parameter](https://pytorch-lightning.readthedocs.io/en/stable/common/trainer.html),
 you just need to prefix it with `+` if it is not originally specified in `configs/main.yaml`.

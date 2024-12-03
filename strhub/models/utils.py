@@ -1,10 +1,10 @@
 from pathlib import PurePath
 from typing import Sequence
 
+import yaml
+
 import torch
 from torch import nn
-
-import yaml
 
 
 class InvalidModelError(RuntimeError):
@@ -13,6 +13,7 @@ class InvalidModelError(RuntimeError):
 
 _WEIGHTS_URL = {
     'parseq-tiny': 'https://github.com/baudm/parseq/releases/download/v1.0.0/parseq_tiny-e7a21b54.pt',
+    'parseq-patch16-224': 'https://github.com/baudm/parseq/releases/download/v1.0.0/parseq_small_patch16_224-fcf06f5a.pt',
     'parseq': 'https://github.com/baudm/parseq/releases/download/v1.0.0/parseq-bb5792a6.pt',
     'abinet': 'https://github.com/baudm/parseq/releases/download/v1.0.0/abinet-1d1e373e.pt',
     'trba': 'https://github.com/baudm/parseq/releases/download/v1.0.0/trba-cfaed284.pt',
@@ -26,7 +27,7 @@ def _get_config(experiment: str, **kwargs):
     root = PurePath(__file__).parents[2]
     with open(root / 'configs/main.yaml', 'r') as f:
         config = yaml.load(f, yaml.Loader)['model']
-    with open(root / f'configs/charset/94_full.yaml', 'r') as f:
+    with open(root / 'configs/charset/94_full.yaml', 'r') as f:
         config.update(yaml.load(f, yaml.Loader)['model'])
     with open(root / f'configs/experiment/{experiment}.yaml', 'r') as f:
         exp = yaml.load(f, yaml.Loader)
@@ -57,7 +58,7 @@ def _get_model_class(key):
     elif 'vitstr' in key:
         from .vitstr.system import ViTSTR as ModelClass
     else:
-        raise InvalidModelError("Unable to find model class for '{}'".format(key))
+        raise InvalidModelError(f"Unable to find model class for '{key}'")
     return ModelClass
 
 
@@ -65,7 +66,7 @@ def get_pretrained_weights(experiment):
     try:
         url = _WEIGHTS_URL[experiment]
     except KeyError:
-        raise InvalidModelError("No pretrained weights found for '{}'".format(experiment)) from None
+        raise InvalidModelError(f"No pretrained weights found for '{experiment}'") from None
     return torch.hub.load_state_dict_from_url(url=url, map_location='cpu', check_hash=True)
 
 
@@ -73,11 +74,12 @@ def create_model(experiment: str, pretrained: bool = False, **kwargs):
     try:
         config = _get_config(experiment, **kwargs)
     except FileNotFoundError:
-        raise InvalidModelError("No configuration found for '{}'".format(experiment)) from None
+        raise InvalidModelError(f"No configuration found for '{experiment}'") from None
     ModelClass = _get_model_class(experiment)
     model = ModelClass(**config)
     if pretrained:
-        model.load_state_dict(get_pretrained_weights(experiment))
+        m = model.model if 'parseq' in experiment else model
+        m.load_state_dict(get_pretrained_weights(experiment))
     return model
 
 
@@ -107,11 +109,11 @@ def init_weights(module: nn.Module, name: str = '', exclude: Sequence[str] = ())
     if any(map(name.startswith, exclude)):
         return
     if isinstance(module, nn.Linear):
-        nn.init.trunc_normal_(module.weight, std=.02)
+        nn.init.trunc_normal_(module.weight, std=0.02)
         if module.bias is not None:
             nn.init.zeros_(module.bias)
     elif isinstance(module, nn.Embedding):
-        nn.init.trunc_normal_(module.weight, std=.02)
+        nn.init.trunc_normal_(module.weight, std=0.02)
         if module.padding_idx is not None:
             module.weight.data[module.padding_idx].zero_()
     elif isinstance(module, nn.Conv2d):

@@ -152,3 +152,10 @@ data/
 data.zip
 securimage-data/
 securimage-data.zip
+
+*.ckpt
+events.out.tfevents.*
+*.png
+*.onnx
+*.h5
+*.pth

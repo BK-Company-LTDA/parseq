@@ -58,7 +58,7 @@ def _get_model_class(key):
     elif 'vitstr' in key:
         from .vitstr.system import ViTSTR as ModelClass
     else:
-        raise InvalidModelError(f"Unable to find model class for '{key}'")
+        from .parseq.system import PARSeq as ModelClass
     return ModelClass
 
 
@@ -67,6 +67,7 @@ def get_pretrained_weights(experiment):
         url = _WEIGHTS_URL[experiment]
     except KeyError:
         raise InvalidModelError(f"No pretrained weights found for '{experiment}'") from None
+    print(url)
     return torch.hub.load_state_dict_from_url(url=url, map_location='cpu', check_hash=True)
 
 

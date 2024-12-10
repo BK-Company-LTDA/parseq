@@ -1,6 +1,6 @@
 defaults:
   - _self_
-  - model: parseq
+  - model: parseq-tiny
   - charset: 94_full
   - dataset: real
 
@@ -12,8 +12,8 @@ model:
   charset_train: "0123456789abcdefghijklmnopqrstuvwxyz"
   # For charset_test, ordering doesn't matter.
   charset_test: "0123456789abcdefghijklmnopqrstuvwxyz"
+  # batch_size: 384
   batch_size: 384
-  # batch_size: 192
   weight_decay: 0.0
   warmup_pct: 0.075  # equivalent to 1.5 epochs of warm up
 
@@ -28,8 +28,8 @@ data:
   max_label_length: ${model.max_label_length}
   remove_whitespace: true
   normalize_unicode: true
-  augment: true
-  num_workers: 1
+  augment: false
+  num_workers: 2
 
 trainer:
   _target_: pytorch_lightning.Trainer
@@ -37,16 +37,12 @@ trainer:
   val_check_interval: 10
   #max_steps: 169680  # 20 epochs x 8484 steps (for batch size = 384, real data)
   # max_epochs: 10000
-  max_epochs: 20
+  max_epochs: 100
   gradient_clip_val: 20
   accelerator: gpu
   devices: 1
 
-# ckpt_path: checkpoints/new/last.ckpt
-# ckpt_path: checkpoints/new/last.ckpt
 ckpt_path: null
-# pretrained: checkpoints/last.ckpt
-# pretrained: checkpoints/new/last.ckpt
 pretrained: null
 
 hydra:

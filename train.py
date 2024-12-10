@@ -74,10 +74,13 @@ def main(config: DictConfig):
     if config.model.get('perm_mirrored', False):
         assert config.model.perm_num % 2 == 0, 'perm_num should be even if perm_mirrored = True'
 
+    # model = torch.load("parseq.pth")
     model: BaseSystem = hydra.utils.instantiate(config.model)
+    print(model)
     # If specified, use pretrained weights to initialize the model
     if config.pretrained is not None:
         m = model.model if config.model._target_.endswith('PARSeq') else model
+        print(config.pretrained)
         m.load_state_dict(get_pretrained_weights(config.pretrained))
     print(summarize(model, max_depth=2))
 
@@ -104,6 +107,7 @@ def main(config: DictConfig):
         strategy=trainer_strategy,
         enable_model_summary=False,
         callbacks=[checkpoint, swa],
+        log_every_n_steps=1,
     )
     trainer.fit(model, datamodule=datamodule, ckpt_path=config.ckpt_path)
 
